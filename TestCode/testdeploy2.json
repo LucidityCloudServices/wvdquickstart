@@ -1,0 +1,60 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+     "utcValue": {
+            "type": "string",
+            "metadata": {
+                "description": "Please leave this value as '[utcNow()]', as this is used to generate unique names in the deployment. This is a requirement for resources like a keyvault or storage account."
+            },
+            "defaultValue": "[utcNow()]"
+        }, 
+    "resourceTags": {
+        "type": "object",
+        "defaultValue": {
+            "Use Case": "Cloud Virtual Desktops",
+            "Application": "Windows Virtual Desktop",
+            "Environment": "Demo",
+            "Owner": "Eighty20 Solutions"
+
+        }
+    }
+    },
+    "variables": {
+         "_artifactsLocation": "https://raw.githubusercontent.com/Eighty20Solutions/wvdquickstart/debugging",
+        "tags": "[string(parameters('resourceTags'))]",
+        "rgName": "[resourcegroup().name]",
+        "autoAccountName": "[concat('automation', toLower(skip(parameters('utcValue'), 9)))]",
+        "jobGuid0": "[guid(toLower(uniquestring(variables('identityName'), resourceGroup().id, parameters('utcValue'),'credentials')))]",
+        "jobGuid": "[guid(toLower(uniquestring(variables('identityName'), resourceGroup().id, parameters('utcValue'),variables('autoAccountName'))))]",
+        "identityName": "WVDServicePrincipal",
+        "location": "[resourcegroup().location]",
+        "automationVariables": [
+            {
+                "name": "subscriptionid",
+                "value": "[concat('\"',subscription().subscriptionId,'\"')]"
+            },
+            {
+                "name": "ResourceGroupName",
+                "value": "[concat('\"',variables('rgName'),'\"')]"
+            },
+            {
+                "name": "fileURI",
+                "value": "[concat('\"',variables('_artifactsLocation'),'\"')]"
+            },
+            {
+                "name": "tags",
+                "value": "[replace(replace(string(variables('tags')),':','='),'\",\"','\";\"')]"
+            }
+        ]       
+    },
+    "resources": [
+        
+    ],
+    "outputs": {
+          "tagValue": {
+                "type": "string",
+                "value": "[replace(replace(string(variables('tags')),':','='),'\",\"','\";\"')]"
+          }
+    }
+  }

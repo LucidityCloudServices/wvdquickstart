@@ -10,12 +10,12 @@ Date:   Tue Oct 27 09:07:56 2020 +1100
 [1m+++ b/ARMRunbookScripts/AADDSdevopssetup.ps1[m
 [36m@@ -110,7 +110,7 @@[m [m$roleMember = Get-AzureADUser -ObjectId $domainUser.ObjectId[m
  # Fetch User Account Administrator role instance[m
- $role = Get-AzureADDirectoryRole | Where-Object {$_.displayName -eq 'Company Administrator'}[m
+ $role = Get-AzureADDirectoryRole | Where-Object {$_.displayName -eq 'Global Administrator'}[m
  # If role instance does not exist, instantiate it based on the role template[m
 [31m-if ($role -eq $null) {[m
 [32m+[m[32mif ($null -eq $role) {[m
      # Instantiate an instance of the role template[m
-     $roleTemplate = Get-AzureADDirectoryRoleTemplate | Where-Object {$_.displayName -eq 'Company Administrator'}[m
+     $roleTemplate = Get-AzureADDirectoryRoleTemplate | Where-Object {$_.displayName -eq 'Global Administrator'}[m
      Enable-AzureADDirectoryRole -RoleTemplateId $roleTemplate.ObjectId[m
 [36m@@ -130,7 +130,7 @@[m [mAdd-AzureADGroupMember -ObjectId $GroupObjectId.ObjectId -RefObjectId $domainUse[m
  [m
