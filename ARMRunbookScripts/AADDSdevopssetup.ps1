@@ -108,14 +108,14 @@ $domainUser = Get-AzureADUser -Filter "UserPrincipalName eq '$($domainJoinUPN)'"
 $roleMember = Get-AzureADUser -ObjectId $domainUser.ObjectId
 
 # Fetch User Account Administrator role instance
-$role = Get-AzureADDirectoryRole | Where-Object {$_.displayName -eq 'Company Administrator'}
+$role = Get-AzureADDirectoryRole | Where-Object {$_.displayName -eq 'Global Administrator'}
 # If role instance does not exist, instantiate it based on the role template
 if ($null -eq $role) {
     # Instantiate an instance of the role template
-    $roleTemplate = Get-AzureADDirectoryRoleTemplate | Where-Object {$_.displayName -eq 'Company Administrator'}
+    $roleTemplate = Get-AzureADDirectoryRoleTemplate | Where-Object {$_.displayName -eq 'Global Administrator'}
     Enable-AzureADDirectoryRole -RoleTemplateId $roleTemplate.ObjectId
     # Fetch User Account Administrator role instance again
-    $role = Get-AzureADDirectoryRole | Where-Object {$_.displayName -eq 'Company Administrator'}
+    $role = Get-AzureADDirectoryRole | Where-Object {$_.displayName -eq 'Global Administrator'}
 }
 # Add user to role
 Add-AzureADDirectoryRoleMember -ObjectId $role.ObjectId -RefObjectId $roleMember.ObjectId

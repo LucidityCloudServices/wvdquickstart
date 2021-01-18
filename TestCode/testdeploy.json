@@ -1,0 +1,199 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+     "utcValue": {
+            "type": "string",
+            "metadata": {
+                "description": "Please leave this value as '[utcNow()]', as this is used to generate unique names in the deployment. This is a requirement for resources like a keyvault or storage account."
+            },
+            "defaultValue": "[utcNow()]"
+        },
+     "azureAdminUpn": {
+            "type": "string",
+            "metadata": {
+                "description": "The UPN of the account that you're currently logged in with on the Azure Portal in the format account@domain.com. This account should at least have the 'contributor' or 'owner' role on the subscription level for the deployment to succeed. The template will fail if you enter a user account that requires MFA. Additionally, you must be signed in to Azure using the same credentails when you start the deployment."
+            }
+        },
+        "azureAdminPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "The password that corresponds to the Azure admin UPN above."
+            }
+        },        
+    "resourceTags": {
+        "type": "object",
+        "defaultValue": {
+            "Use Case": "Cloud Virtual Desktops",
+            "Application": "Windows Virtual Desktop",
+            "Environment": "Demo",
+            "Owner": "Eighty20 Solutions"
+
+        }
+    }
+    },
+    "variables": {
+         "_artifactsLocation": "https://raw.githubusercontent.com/Eighty20Solutions/wvdquickstart/debugging",
+        "tags": "[string(parameters('resourceTags'))]",
+        "rgName": "[resourcegroup().name]",
+        "autoAccountName": "[concat('automation', toLower(skip(parameters('utcValue'), 9)))]",
+        "jobGuid0": "[guid(toLower(uniquestring(variables('identityName'), resourceGroup().id, parameters('utcValue'),'credentials')))]",
+        "jobGuid": "[guid(toLower(uniquestring(variables('identityName'), resourceGroup().id, parameters('utcValue'),variables('autoAccountName'))))]",
+        "identityName": "WVDServicePrincipal",
+        "location": "[resourcegroup().location]",
+        "automationVariables": [
+            {
+                "name": "subscriptionid",
+                "value": "[concat('\"',subscription().subscriptionId,'\"')]"
+            },
+            {
+                "name": "ResourceGroupName",
+                "value": "[concat('\"',variables('rgName'),'\"')]"
+            },
+            {
+                "name": "fileURI",
+                "value": "[concat('\"',variables('_artifactsLocation'),'\"')]"
+            },
+            {
+                "name": "tags",
+                "value": "[variables('tags')]"
+            }
+        ]       
+    },
+    "resources": [
+        {
+            "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+            "name": "[variables('identityName')]",
+            "apiVersion": "2018-11-30",
+            "location": "[variables('location')]",
+            "properties": {},
+            "tags": "[parameters('resourceTags')]"
+        },
+        {
+            "type": "Microsoft.Automation/automationAccounts",
+            "apiVersion": "2015-01-01-preview",
+            "name": "[variables('autoAccountName')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+            ],
+            "tags": "[parameters('resourceTags')]",
+            "properties": {
+                "sku": {
+                    "name": "Free"
+                }
+            },
+            "resources": [
+                {
+                    "type": "credentials",
+                    "apiVersion": "2015-01-01-preview",
+                    "name": "AzureCredentials",
+                    "location": "[resourceGroup().location]",
+                    "dependsOn": [
+                        "[concat('Microsoft.Automation/automationAccounts/', variables('autoAccountName'))]"
+                    ],
+                    "tags": "[parameters('resourceTags')]",
+                    "properties": {
+                        "userName": "[parameters('azureAdminUpn')]",
+                        "password": "[parameters('azureAdminPassword')]"
+                    }
+                },
+                {
+                    "type": "runbooks",
+                    "apiVersion": "2015-01-01-preview",
+                    "name": "inputValidationRunbook",
+                    "location": "[resourceGroup().location]",
+                    "dependsOn": [
+                        "[concat('Microsoft.Automation/automationAccounts/', variables('autoAccountName'))]",
+                        "[concat('Microsoft.Automation/automationAccounts/', variables('autoAccountName'), '/credentials/AzureCredentials')]"
+                    ],
+                    "tags": "[parameters('resourceTags')]",
+                    "properties": {
+                        "runbookType": "PowerShell",
+                        "logProgress": false,
+                        "logVerbose": false,
+                        "publishContentLink": {
+                            "uri": "[concat(variables('_artifactsLocation'),'/ARMRunbookScripts/AADDSinputValidation.ps1')]",
+                            "version": "1.0.0.0"
+                        }
+                    } 
+                },
+                {
+                    "type": "jobs",
+                    "apiVersion": "2015-01-01-preview",
+                    "name": "[variables('jobGuid0')]",
+                    "location": "[resourceGroup().location]",
+                    "dependsOn": [
+                        "[concat('Microsoft.Automation/automationAccounts/', variables('autoAccountName'))]",
+                        "[concat('Microsoft.Automation/automationAccounts/', variables('autoAccountName'), '/runbooks/inputValidationRunbook')]"
+                    ],
+                    "tags": "[parameters('resourceTags')]",
+                    "properties": {
+                        "runbook": {
+                            "name": "inputValidationRunbook"
+                        }
+                    }
+                },
+                {
+                    "type": "runbooks",
+                    "apiVersion": "2015-01-01-preview",
+                    "name": "ServicePrincipalRunbook",
+                    "location": "[resourceGroup().location]",
+                    "dependsOn": [
+                        "[concat('Microsoft.Automation/automationAccounts/', variables('autoAccountName'))]",
+                        "[concat('Microsoft.Automation/automationAccounts/', variables('autoAccountName'), '/credentials/AzureCredentials')]"
+                    ],
+                    "tags": "[parameters('resourceTags')]",
+                    "properties": {
+                        "runbookType": "PowerShell",
+                        "logProgress": false,
+                        "logVerbose": false,
+                        "publishContentLink": {
+                            "uri": "[concat(variables('_artifactsLocation'),'/ARMRunbookScripts/createServicePrincipal.ps1')]",
+                            "version": "1.0.0.0"
+                        }
+                    }
+                },
+                {
+                    "type": "jobs",
+                    "apiVersion": "2015-01-01-preview",
+                    "name": "[variables('jobGuid')]",
+                    "location": "[resourceGroup().location]",
+                    "dependsOn": [
+                        "[concat('Microsoft.Automation/automationAccounts/', variables('autoAccountName'))]",
+                        "[concat('Microsoft.Automation/automationAccounts/', variables('autoAccountName'), '/runbooks/ServicePrincipalRunbook')]",
+                        "[concat('Microsoft.Automation/automationAccounts/', variables('autoAccountName'), '/runbooks/inputValidationRunbook')]",
+                        "[concat('Microsoft.Automation/automationAccounts/', variables('autoAccountName'), '/jobs/', variables('jobGuid0'))]"
+                    ],
+                    "tags": "[parameters('resourceTags')]",
+                    "properties": {
+                        "runbook": {
+                            "name": "ServicePrincipalRunbook"
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "type": "Microsoft.Automation/automationAccounts/variables",
+            "apiVersion": "2015-10-31",
+            "name": "[concat(variables('autoAccountName'), '/', variables('automationVariables')[copyIndex()].name)]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Automation/automationAccounts', variables('autoAccountName'))]"
+            ],
+            "tags": "[parameters('resourceTags')]",
+            "properties": {
+                "value": "[variables('automationVariables')[copyIndex()].value]"
+            },
+            "copy": {
+                "name": "variableLoop",
+                "count": "[length(variables('automationVariables'))]"
+            }
+        }
+    ],
+    "outputs": {
+          "tagValue": {
+                "type": "string",
+                "value": "[replace(replace(string(variables('tags')),':','='),'\",\"','\";\"')]"
+          }
+    }
+  }
