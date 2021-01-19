@@ -226,7 +226,13 @@ if ($identityApproach -eq 'Azure AD DS') {
     $userName = $config.userName
     $upn = $($userName + "@" + $domainName)
       if ($config.createGroup) { New-AzADGroup -DisplayName "$targetGroup" -MailNickname "$targetGroup" }
-      if ($config.createUser) { New-AzADUser -UserPrincipalName $upn -DisplayName "$userName" -MailNickname $userName -Password (convertto-securestring $userPassword -AsPlainText -Force) }
+      if ($config.createUser) { 
+        $newuser = New-AzADUser -UserPrincipalName $upn -DisplayName "$userName" -MailNickname $userName -Password (convertto-securestring $userPassword -AsPlainText -Force)
+        # Add created user to Security Group to exclude them from MFA requirement (to automate deployment scripts)
+        # TODO - parameterise Security Group Name
+        $WVDAdminGroupObjectId = Get-AzureADGroup -Filter "DisplayName eq 'WVD Automation Admins'" | Select-Object ObjectId
+        Add-AzureADGroupMember -ObjectId $WVDAdminGroupObjectId -RefObjectId $newuser.Id 
+      }
       if ($config.assignUsers) { Add-AzADGroupMember -MemberUserPrincipalName  $upn -TargetGroupDisplayName $targetGroup }
       Start-Sleep -Seconds 1
   }
