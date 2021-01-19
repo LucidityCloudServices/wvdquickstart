@@ -158,7 +158,7 @@ Get-AzureADDirectoryRoleMember -ObjectId $role.ObjectId | Get-AzureADUser
 # Add user to Security Group to exclude them from MFA requirement (to automate deployment scripts)
 # TODO - parameterise Security Group Name
 $WVDAdminGroupObjectId = Get-AzureADGroup -Filter "DisplayName eq 'WVD Automation Admins'" | Select-Object ObjectId
-Add-AzureADGroupMember -ObjectId $WVDAdminGroupObjectId -RefObjectId $roleMember.ObjectId
+Add-AzureADGroupMember -ObjectId $WVDAdminGroupObjectId.ObjectId -RefObjectId $roleMember.ObjectId
 
 New-AzADServicePrincipal -ApplicationId "2565bd9d-da50-47d4-8b85-4c97f669dc36"
 
