@@ -18,7 +18,7 @@ This script is ran by the devOpsSetupRunbook and it does the following, in the o
 
 #>
 
-#Initializing variables from automation account
+#region Initializing variables from automation account
 $SubscriptionId = Get-AutomationVariable -Name 'subscriptionid'
 $ResourceGroupName = Get-AutomationVariable -Name 'ResourceGroupName'
 $fileURI = Get-AutomationVariable -Name 'fileURI'
@@ -41,7 +41,9 @@ $AutomationAccountName = Get-AutomationVariable -Name 'AccountName'
 $identityApproach = Get-AutomationVariable -Name 'identityApproach'
 $notificationEmail = Get-AutomationVariable -Name 'notificationEmail'
 $tags = Get-AutomationVariable -Name 'tags'
+#endregion Initializing variables from automation account
 
+#region Obtain and perform pre-requisites
 write-output "Starting 45 minutes of sleep to allow for domain to start running, which typically takes 30-40 minutes."
 start-sleep -Seconds 2700
 
@@ -70,6 +72,7 @@ Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope LocalMachine -Force -Co
 Get-ExecutionPolicy -List
 
 
+
 #The name of the Automation Credential Asset this runbook will use to authenticate to Azure.
 $CredentialAssetName = 'ServicePrincipalCred'
 
@@ -88,11 +91,15 @@ Connect-AzAccount -Environment 'AzureCloud' -Credential $AzCredentials
 Connect-AzureAD -AzureEnvironmentName 'AzureCloud' -Credential $AzCredentials
 Select-AzSubscription -SubscriptionId $SubscriptionId
 
-#Set vnet DNS settings to "custom"
+#endregion Obtain and perform pre-requisites
+
+#region Set vnet DNS settings to "custom"
 $vnet = Get-AzVirtualNetwork -ResourceGroupName $virtualNetworkResourceGroupName -name $existingVnetName
 $vnet.DhcpOptions.DnsServers = "10.0.0.4"
 Set-AzVirtualNetwork -VirtualNetwork $vnet
+#endregion Set vnet DNS settings to "custom"
 
+#region Create the domain join admin user and add it to the AAD DC Administrators group
 # Create admin user for domain join
 $PasswordProfile = New-Object -TypeName Microsoft.Open.AzureAD.Model.PasswordProfile
 $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($AzCredentials.password)
@@ -133,6 +140,9 @@ $GroupObjectId = Get-AzureADGroup -Filter "DisplayName eq 'AAD DC Administrators
 # Add the user to the 'AAD DC Administrators' group.
 Add-AzureADGroupMember -ObjectId $GroupObjectId.ObjectId -RefObjectId $domainUser.ObjectId
 
+#endregion Create the domain join admin user and add it to the AAD DC Administrators group
+
+#region Create a DevOps project in the newly created DevOps organization
 # Get the context
 $context = Get-AzContext
 if ($null -eq $context)
@@ -173,7 +183,9 @@ $response = Invoke-RestMethod -Uri $url -Headers @{Authorization = "Basic $token
 write-output $response
 
 start-sleep -Seconds 5  # to make sure project creation completed - would sometimes fail next request without this. TODO: more robust solution here
+#endregion Create a DevOps project in the newly created DevOps organization
 
+#region Create a service connection between the DevOps project and the Azure Subscription using the WVDServicePrincipal
 # Create the service connection between devops and Azure using the service principal created in the createServicePrincipal script
 $url= $("https://dev.azure.com/" + $orgName + "/" + $projectName + "/_apis/serviceendpoint/endpoints?api-version=5.1-preview.2")
 write-output $url
@@ -208,7 +220,10 @@ write-output $body
 $response = Invoke-RestMethod -Uri $url -Headers @{Authorization = "Basic $token"} -Method Post -Body $Body -ContentType application/json
 write-output $response
 $endpointId = $response.id  # needed to set permissions later
+#endregion Create a service connection between the DevOps project and the Azure Subscription using the WVDServicePrincipal
 
+
+#region Create a git repository in the DevOps project
 # Get project ID to create repo. Not necessary if using default repo
 $url = $("https://dev.azure.com/" + $orgName + "/_apis/projects/" + $projectName + "?api-version=5.1")
 $response = Invoke-RestMethod -Uri $url -Headers @{Authorization = "Basic $token"} -Method Get
@@ -230,8 +245,9 @@ write-output $body
 
 $response = Invoke-RestMethod -Uri $url -Headers @{Authorization = "Basic $token"} -Method Post -Body $Body -ContentType application/json
 write-output $response
+#endregion Create a git repository in the DevOps project
 
-# Clone public github repo with all the required files
+#region Clone public github repo with all the required files
 $url= $("https://dev.azure.com/" + $orgName + "/" + $projectName + "/_apis/git/repositories/" + $projectName + "/importRequests?api-version=5.1-preview.1")
 write-output $url 
 
@@ -248,7 +264,9 @@ write-output $body
 
 $response = Invoke-RestMethod -Uri $url -Headers @{Authorization = "Basic $token"} -Method Post -Body $Body -ContentType application/json
 write-output $response
+#endregion Clone public github repo with all the required files
 
+#region Set up Identity for Azure DevOps  
 # In case Azure AD DS is used, create a new user here, and assign it to the targetGroup. The principalID of this group will then be used.
 if ($identityApproach -eq 'Azure AD DS') {
   $url = $($fileURI + "/Modules/ARM/UserCreation/Parameters/users.parameters.json")
@@ -293,6 +311,7 @@ if ($null -eq $principalIds) {
 $split = $principalIds.Split(' ')
 $principalIds = $split[0]
 Write-Output "Found user group $targetGroup with principal Id $principalIds"
+#endregion Set up Identity for Azure DevOps  
 
 # Get ID of the commit we just pushed, needed for the next commit below
 $url = $("https://dev.azure.com/" + $orgName + "/" + $projectName + "/_apis/git/repositories/" + $projectName + "/refs?filter=heads/master&api-version=5.1")
@@ -311,7 +330,7 @@ if ($null -eq $response.value.ObjectId) {
   throw "Pushing repository to DevOps timed out. Please try again later."
 }
 
-# Parse user input into the template variables file and the deployment parameter file and commit them to the devops repo
+#region Parse user input into the template variables file and the deployment parameter file and commit them to the devops repo
 $url = $("https://dev.azure.com/" + $orgName + "/" + $projectName + "/_apis/git/repositories/" + $projectName + "/pushes?api-version=5.1")
 write-output $url
 
@@ -330,6 +349,7 @@ $content = $content.Replace("[autoAccountName]", $AutomationAccountName)
 $content = $content.Replace("[identityApproach]", $identityApproach)
 $content = $content.Replace("[tags]", $tags)
 $content = $content.Replace('"', '')
+write-output "---------------------Updated version of QS-WVD/variables.yml after replacing the variables---------------------"
 write-output $content
 
 $downloadUrl = $($fileUri + "/QS-WVD/static/appliedParameters.template.psd1")
@@ -347,7 +367,7 @@ $parameters = $parameters.Replace("[tenantId]", $tenant)
 $parameters = $parameters.Replace("[subscriptionId]", $subscriptionId)
 $parameters = $parameters.Replace("[location]", $location)
 $parameters = $parameters.Replace("[wvdMetadataLocation]", $wvdMetadataLocation)
-$parameters = $content.Replace("[tags]", $tags)
+$parameters = $parameters.Replace("[tags]", $tags)
 $parameters = $parameters.Replace("[adminUsername]", $adminUsername)
 $parameters = $parameters.Replace("[domainName]", $domainName)
 $parameters = $parameters.Replace("[keyVaultName]", $keyvaultName)
@@ -358,6 +378,7 @@ $parameters = $parameters.Replace("[principalIds]", $principalIds)
 $parameters = $parameters.Replace("[targetGroup]", $targetGroup)
 $parameters = $parameters.Replace("[identityApproach]", $identityApproach)
 $parameters = $parameters.Replace('"', "'")
+write-output "---------------------Updated version of QS-WVD/static/appliedParameters.psd1 after replacing the variables---------------------"
 write-output $parameters
 
 $body = @"
@@ -401,6 +422,7 @@ write-output $body
 
 $response = Invoke-RestMethod -Uri $url -Headers @{Authorization = "Basic $token"} -Method Post -Body $Body -ContentType application/json
 write-output $response
+#endregion Parse user input into the template variables file and the deployment parameter file and commit them to the devops repo
 
 # Give service principal access to the keyvault
 Set-AzKeyVaultAccessPolicy -VaultName $keyvaultName -ServicePrincipalName $principalId -PermissionsToSecrets Get,Set,List,Delete,Recover,Backup,Restore
