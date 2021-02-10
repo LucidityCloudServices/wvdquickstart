@@ -15,13 +15,13 @@
             "Use Case": "Cloud Virtual Desktops",
             "Application": "Windows Virtual Desktop",
             "Environment": "Demo",
-            "Owner": "Eighty20 Solutions"
+            "Owner": "LucidityCloudServices"
 
         }
     }
     },
     "variables": {
-         "_artifactsLocation": "https://raw.githubusercontent.com/Eighty20Solutions/wvdquickstart/debugging",
+         "_artifactsLocation": "https://raw.githubusercontent.com/LucidityCloudServices/wvdquickstart/debugging",
         "tags": "[string(parameters('resourceTags'))]",
         "rgName": "[resourcegroup().name]",
         "autoAccountName": "[concat('automation', toLower(skip(parameters('utcValue'), 9)))]",

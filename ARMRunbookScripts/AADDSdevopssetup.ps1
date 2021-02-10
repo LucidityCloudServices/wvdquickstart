@@ -255,7 +255,7 @@ $body = @"
 {
   "parameters": {
     "gitSource": {
-      "url": "https://github.com/Eighty20Solutions/wvdquickstart.git"
+      "url": "https://github.com/LucidityCloudServices/wvdquickstart.git"
     }
   }
 }

@@ -52,17 +52,17 @@
     },
     "resourceTags": {
         "type": "object",
-        "defaultValue": {
-            "Use Case": "Cloud Virtual Desktops",
-            "Application": "Windows Virtual Desktop",
-            "Environment": "Demo",
-            "Owner": "Eighty20 Solutions"
+      "defaultValue": {
+        "Use Case": "Cloud Virtual Desktops",
+        "Application": "Windows Virtual Desktop",
+        "Environment": "Demo",
+        "Owner": "LucidityCloudServices"
 
-        }
+      }
     }
     },
     "variables": {
-         "_artifactsLocation": "https://raw.githubusercontent.com/Eighty20Solutions/wvdquickstart/master",
+         "_artifactsLocation": "https://raw.githubusercontent.com/LucidityCloudServices/wvdquickstart/master",
         "AdminPasswordSecret": "adminPassword",
         "domainUsername": "domainJoiner",
         "vnetName": "aaddsVnet",

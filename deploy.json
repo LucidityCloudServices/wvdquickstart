@@ -92,117 +92,117 @@
       }
     }
     },
-    "variables": {
-        "_artifactsLocation": "https://raw.githubusercontent.com/Eighty20Solutions/wvdquickstart/master",
-        "AdminPasswordSecret": "adminPassword",
-        "existingDomainUsername": "[first(split(parameters('DomainJoinAccountUPN'), '@'))]",
-        "existingDomainName": "[split(parameters('DomainJoinAccountUPN'), '@')[1]]",
-        "identityName": "WVDServicePrincipal",
-        "location": "[resourcegroup().location]",
-        "wvdMetadataLocation": "[parameters('wvdMetadataLocation')]",
-        "rgName": "[resourcegroup().name]",
-        "keyvaultName": "[concat('keyvault', parameters('utcValue'))]",
-        "assetsName": "[concat('assets', toLower(skip(parameters('utcValue'), 4)))]",
-        "profilesName": "[concat('profiles', toLower(skip(parameters('utcValue'), 4)))]",
-        "autoAccountName": "[concat('automation', toLower(skip(parameters('utcValue'), 9)))]",
-        "tenantId": "[subscription().tenantId]",
-        "jobGuid0": "[guid(toLower(uniquestring(variables('identityName'), resourceGroup().id, parameters('utcValue'),'credentials')))]",
-        "jobGuid": "[guid(toLower(uniquestring(variables('identityName'), resourceGroup().id, parameters('utcValue'),variables('autoAccountName'))))]",
-        "jobGuid2": "[guid(toLower(uniquestring(variables('identityName'), subscription().id, parameters('utcValue'),'devOpsSetup')))]",
-        "devOpsName": "[concat('WVDQuickStartOrg', skip(parameters('utcValue'), 9))]",   
-        "devOpsProjectName": "[concat('WVDQuickStartProj', skip(parameters('utcValue'), 9))]",
-        "targetGroup": "WVDTestUsers",
-        "automationVariables": [
-            {
-                "name": "subscriptionid",
-                "value": "[concat('\"',subscription().subscriptionId,'\"')]"
-            },
-            {
-                "name": "accountName",
-                "value": "[concat('\"',variables('autoAccountName'),'\"')]"
-            },
-            {
-                "name": "AppName",
-                "value": "[concat('\"',variables('identityName'),'\"')]"
-            },
-            {
-                "name": "ResourceGroupName",
-                "value": "[concat('\"',variables('rgName'),'\"')]"
-            },
-            {
-                "name": "fileURI",
-                "value": "[concat('\"',variables('_artifactsLocation'),'\"')]"
-            },
-            {
-                "name": "orgName",
-                "value": "[concat('\"',variables('devOpsName'),'\"')]"
-            },
-            {
-                "name": "projectName",
-                "value": "[concat('\"',variables('devOpsProjectName'),'\"')]"
-            },
-            {
-                "name": "location",
-                "value": "[concat('\"',variables('location'),'\"')]"
-            },
-            {
-                "name": "wvdMetadataLocation",
-                "value": "[concat('\"',variables('wvdMetadataLocation'),'\"')]"
-            },
-            {
-                "name": "adminUsername",
-                "value": "[concat('\"',variables('existingDomainUsername'),'\"')]"
-            },
-                        {
-                "name": "domainName",
-                "value": "[concat('\"',variables('existingDomainName'),'\"')]"
-            },
-            {
-                "name": "keyvaultName",
-                "value": "[concat('\"',variables('keyvaultName'),'\"')]"
-            },
-            {
-                "name": "assetsName",
-                "value": "[concat('\"',variables('assetsName'),'\"')]"
-            },
-            {
-                "name": "profilesName",
-                "value": "[concat('\"',variables('profilesName'),'\"')]"
-            },
-            {
-                "name": "DomainJoinAccountUPN",
-                "value": "[concat('\"',parameters('DomainJoinAccountUPN'),'\"')]"
-            },
-            {
-                "name": "computerName",
-                "value": "[concat('\"',parameters('domainControllerVMName'),'\"')]"
-            },
-            {
-                "name": "existingVnetName",
-                "value": "[concat('\"',parameters('existingVnetName'),'\"')]"
-            },
-            {
-                "name": "existingSubnetName",
-                "value": "[concat('\"',parameters('existingSubnetName'),'\"')]"
-            },
-            {
-                "name": "virtualNetworkResourceGroupName",
-                "value": "[concat('\"',parameters('virtualNetworkResourceGroupName'),'\"')]"
-            },
-            {
-                "name": "targetGroup",
-                "value": "[concat('\"', variables('targetGroup'),'\"')]"
-            },
-            {
-                "name": "identityApproach",
-                "value": "[concat('\"',parameters('identityApproach'),'\"')]"
-            },
-            {
-                "name": "notificationEmail",
-                "value": "[concat('\"',parameters('optionalNotificationEmail'),'\"')]"
-            }
-        ]   
-    },
+  "variables": {
+    "_artifactsLocation": "https://raw.githubusercontent.com/LucidityCloudServices/wvdquickstart/master",
+    "AdminPasswordSecret": "adminPassword",
+    "existingDomainUsername": "[first(split(parameters('DomainJoinAccountUPN'), '@'))]",
+    "existingDomainName": "[split(parameters('DomainJoinAccountUPN'), '@')[1]]",
+    "identityName": "WVDServicePrincipal",
+    "location": "[resourcegroup().location]",
+    "wvdMetadataLocation": "[parameters('wvdMetadataLocation')]",
+    "rgName": "[resourcegroup().name]",
+    "keyvaultName": "[concat('keyvault', parameters('utcValue'))]",
+    "assetsName": "[concat('assets', toLower(skip(parameters('utcValue'), 4)))]",
+    "profilesName": "[concat('profiles', toLower(skip(parameters('utcValue'), 4)))]",
+    "autoAccountName": "[concat('automation', toLower(skip(parameters('utcValue'), 9)))]",
+    "tenantId": "[subscription().tenantId]",
+    "jobGuid0": "[guid(toLower(uniquestring(variables('identityName'), resourceGroup().id, parameters('utcValue'),'credentials')))]",
+    "jobGuid": "[guid(toLower(uniquestring(variables('identityName'), resourceGroup().id, parameters('utcValue'),variables('autoAccountName'))))]",
+    "jobGuid2": "[guid(toLower(uniquestring(variables('identityName'), subscription().id, parameters('utcValue'),'devOpsSetup')))]",
+    "devOpsName": "[concat('WVDQuickStartOrg', skip(parameters('utcValue'), 9))]",
+    "devOpsProjectName": "[concat('WVDQuickStartProj', skip(parameters('utcValue'), 9))]",
+    "targetGroup": "WVDTestUsers",
+    "automationVariables": [
+      {
+        "name": "subscriptionid",
+        "value": "[concat('\"',subscription().subscriptionId,'\"')]"
+      },
+      {
+        "name": "accountName",
+        "value": "[concat('\"',variables('autoAccountName'),'\"')]"
+      },
+      {
+        "name": "AppName",
+        "value": "[concat('\"',variables('identityName'),'\"')]"
+      },
+      {
+        "name": "ResourceGroupName",
+        "value": "[concat('\"',variables('rgName'),'\"')]"
+      },
+      {
+        "name": "fileURI",
+        "value": "[concat('\"',variables('_artifactsLocation'),'\"')]"
+      },
+      {
+        "name": "orgName",
+        "value": "[concat('\"',variables('devOpsName'),'\"')]"
+      },
+      {
+        "name": "projectName",
+        "value": "[concat('\"',variables('devOpsProjectName'),'\"')]"
+      },
+      {
+        "name": "location",
+        "value": "[concat('\"',variables('location'),'\"')]"
+      },
+      {
+        "name": "wvdMetadataLocation",
+        "value": "[concat('\"',variables('wvdMetadataLocation'),'\"')]"
+      },
+      {
+        "name": "adminUsername",
+        "value": "[concat('\"',variables('existingDomainUsername'),'\"')]"
+      },
+      {
+        "name": "domainName",
+        "value": "[concat('\"',variables('existingDomainName'),'\"')]"
+      },
+      {
+        "name": "keyvaultName",
+        "value": "[concat('\"',variables('keyvaultName'),'\"')]"
+      },
+      {
+        "name": "assetsName",
+        "value": "[concat('\"',variables('assetsName'),'\"')]"
+      },
+      {
+        "name": "profilesName",
+        "value": "[concat('\"',variables('profilesName'),'\"')]"
+      },
+      {
+        "name": "DomainJoinAccountUPN",
+        "value": "[concat('\"',parameters('DomainJoinAccountUPN'),'\"')]"
+      },
+      {
+        "name": "computerName",
+        "value": "[concat('\"',parameters('domainControllerVMName'),'\"')]"
+      },
+      {
+        "name": "existingVnetName",
+        "value": "[concat('\"',parameters('existingVnetName'),'\"')]"
+      },
+      {
+        "name": "existingSubnetName",
+        "value": "[concat('\"',parameters('existingSubnetName'),'\"')]"
+      },
+      {
+        "name": "virtualNetworkResourceGroupName",
+        "value": "[concat('\"',parameters('virtualNetworkResourceGroupName'),'\"')]"
+      },
+      {
+        "name": "targetGroup",
+        "value": "[concat('\"', variables('targetGroup'),'\"')]"
+      },
+      {
+        "name": "identityApproach",
+        "value": "[concat('\"',parameters('identityApproach'),'\"')]"
+      },
+      {
+        "name": "notificationEmail",
+        "value": "[concat('\"',parameters('optionalNotificationEmail'),'\"')]"
+      }
+    ]
+  },
     "functions": [
     ],
     "resources": [
